@@ -113,28 +113,33 @@ class CardService(
         }
     }
 
-    fun getOnline(category: Category?, cardIdRequest: CardIdRequest) : List<CardResponse>{
+    fun getOnline(category: Category?, cardIdRequest: CardIdRequest): List<CardResponse> {
         val allCards = cardIdRequest.cardIds.map { id ->
             cardDomainService.getCardBenefitById(id)
         }
 
         val filtered = allCards.map { card ->
-            val benefits = card.benefits.map { benefit ->
-                benefit.copy(
-                    discounts = benefit.discounts.filter { discount ->
-                        discount.channel == ChannelType.ONLINE || discount.channel == ChannelType.BOTH
-                    },
-                    points = benefit.points.filter { point ->
-                        point.channel == ChannelType.ONLINE || point.channel == ChannelType.BOTH
-                    },
-                    cashbacks = benefit.cashbacks.filter { cashback ->
-                        cashback.channel == ChannelType.ONLINE || cashback.channel == ChannelType.BOTH
-                    },
-                    categories = benefit.categories.filter { benefitCategory->
-                        benefitCategory.contains(category.toString(), ignoreCase = true)
+            val benefits = card.benefits
+                // 1. 카테고리를 포함하는 베네핏만 필터링
+                .filter { benefit ->
+                    category == null || benefit.categories.any {
+                        it.equals(category.toString(), ignoreCase = true)
                     }
-                )
-            }
+                }
+                // 2. 필터된 베네핏 안에서 ONLINE, BOTH만 남김
+                .map { benefit ->
+                    benefit.copy(
+                        discounts = benefit.discounts.filter {
+                            it.channel == ChannelType.ONLINE || it.channel == ChannelType.BOTH
+                        },
+                        points = benefit.points.filter {
+                            it.channel == ChannelType.ONLINE || it.channel == ChannelType.BOTH
+                        },
+                        cashbacks = benefit.cashbacks.filter {
+                            it.channel == ChannelType.ONLINE || it.channel == ChannelType.BOTH
+                        }
+                    )
+                }
             card.copy(benefits = benefits)
         }
 
