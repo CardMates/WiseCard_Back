@@ -1,13 +1,13 @@
 spring:
   data:
     mongodb:
-      uri: mongodb+srv://cardmates:cardmates!!@wisecard.fqjvpgx.mongodb.net/wisecard?retryWrites=true&w=majority&appName=wisecard
+      uri: ${MONGODB_URI:}
 
 grpc:
   server:
-    port: 50052
+    port: ${GRPC_PORT:}
 server:
-  port: 8081
+  port: ${SERVER_PORT:}
 
 kakao:
-  rest-api-key: 6e04cfc94461a18e2b77b3a859e2ef0f
+  rest-api-key: ${LMM_API_KEY:}
