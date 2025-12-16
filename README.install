@@ -1,0 +1,239 @@
+# WiseCard API 설치 가이드
+
+이 문서는 WiseCard API 서버를 설치하고 실행하는 방법을 안내합니다.
+
+## 📋 목차
+
+- [시스템 요구사항](#시스템-요구사항)
+- [설치 방법](#설치-방법)
+- [설정](#설정)
+- [실행](#실행)
+- [접속 정보](#접속-정보)
+- [테스트 계정](#테스트-계정)
+- [문제 해결](#문제-해결)
+
+## 시스템 요구사항
+
+### 최소 요구사항
+
+- **운영체제**: Linux, macOS, Windows
+- **Java**: JDK 21 이상
+- **메모리**: 최소 512MB RAM (권장: 1GB 이상)
+- **디스크 공간**: 최소 500MB
+- **네트워크**: 인터넷 연결 (MongoDB Atlas 사용 시)
+
+### 선택사항
+
+- **Docker**: Docker 20.10 이상 (컨테이너 실행 시)
+- **MongoDB**: 로컬 MongoDB 4.4 이상 (MongoDB Atlas 대신 사용 시)
+
+## 설치 방법
+
+### 방법 1: JAR 파일 직접 실행 (권장)
+
+#### 1단계: JAR 파일 다운로드
+
+프로젝트를 빌드하여 JAR 파일을 생성하거나, 제공된 `wisecard-api-0.0.1-SNAPSHOT.jar` 파일을 사용합니다.
+
+```bash
+# 빌드 방법
+git clone https://github.com/CardMates/WiseCard_Back.git
+cd wisecard-api
+./gradlew bootJar
+```
+
+생성된 JAR 파일 위치: `build/libs/wisecard-api-0.0.1-SNAPSHOT.jar`
+
+#### 2단계: 환경 변수 설정
+
+다음 환경 변수를 설정합니다:
+
+```bash
+# MongoDB 연결 URI
+export MONGODB_URI="mongodb+srv://cardmates:cardmates!!@wisecard.fqjvpgx.mongodb.net/wisecard?retryWrites=true&w=majority&appName=wisecard"
+
+# 서버 포트 (기본값: 8081)
+export SERVER_PORT=8081
+
+# gRPC 포트 (기본값: 50052)
+export GRPC_PORT=50052
+
+# Kakao API 키
+export LMM_API_KEY="6e04cfc94461a18e2b77b3a859e2ef0f"
+```
+
+#### 3단계: JAR 파일 실행
+
+```bash
+java -jar wisecard-api-0.0.1-SNAPSHOT.jar
+```
+
+또는 환경 변수와 함께 실행:
+
+```bash
+MONGODB_URI="mongodb+srv://cardmates:cardmates!!@wisecard.fqjvpgx.mongodb.net/wisecard?retryWrites=true&w=majority&appName=wisecard" \
+SERVER_PORT=8081 \
+GRPC_PORT=50052 \
+LMM_API_KEY="6e04cfc94461a18e2b77b3a859e2ef0f" \
+java -jar wisecard-api-0.0.1-SNAPSHOT.jar
+```
+
+### 방법 2: Docker를 사용한 설치
+
+#### 1단계: Docker 이미지 다운로드 또는 빌드
+
+**이미지 다운로드 (제공된 경우):**
+```bash
+docker pull wisecard-api:latest
+```
+
+**또는 이미지 빌드:**
+```bash
+git clone https://github.com/CardMates/WiseCard_Back.git
+cd wisecard-api
+docker build -t wisecard-api:latest .
+```
+
+#### 2단계: Docker 컨테이너 실행
+
+```bash
+docker run -d \
+  --name wisecard-api \
+  -p 8081:8081 \
+  -p 50052:50052 \
+  -e MONGODB_URI="mongodb+srv://cardmates:cardmates!!@wisecard.fqjvpgx.mongodb.net/wisecard?retryWrites=true&w=majority&appName=wisecard" \
+  -e SERVER_PORT=8081 \
+  -e GRPC_PORT=50052 \
+  -e LMM_API_KEY="6e04cfc94461a18e2b77b3a859e2ef0f" \
+  wisecard-api:latest
+```
+
+#### 3단계: 컨테이너 상태 확인
+
+```bash
+docker ps
+docker logs wisecard-api
+```
+
+### 방법 3: 소스 코드에서 빌드 및 실행
+
+#### 1단계: 저장소 클론
+
+```bash
+git clone https://github.com/CardMates/WiseCard_Back.git
+cd wisecard-api
+```
+
+#### 2단계: Gradle Wrapper 권한 설정 (Linux/Mac)
+
+```bash
+chmod +x gradlew
+```
+
+#### 3단계: 환경 변수 설정
+
+`src/main/resources/application.yml` 파일을 수정하거나 환경 변수를 설정합니다.
+```yaml
+spring:
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb+srv://cardmates:cardmates!!@wisecard.fqjvpgx.mongodb.net/wisecard?retryWrites=true&w=majority&appName=wisecard}
+
+grpc:
+  server:
+    port: ${GRPC_PORT:50052}
+
+server:
+  port: ${SERVER_PORT:8081}
+
+kakao:
+  rest-api-key: ${LMM_API_KEY:6e04cfc94461a18e2b77b3a859e2ef0f}
+```
+
+#### 4단계: 빌드 및 실행
+
+```bash
+# 빌드
+./gradlew clean build
+
+# 실행
+./gradlew bootRun
+```
+
+
+## 접속 정보
+
+### 웹 접속 주소
+
+애플리케이션이 실행되면 다음 주소로 접속할 수 있습니다:
+
+#### 로컬 실행 시
+
+- **REST API Base URL**: http://localhost:8081
+- **Swagger UI**: http://localhost:8081/swagger-ui.html
+- **OpenAPI JSON**: http://localhost:8081/v3/api-docs
+- **gRPC 서버**: localhost:50052
+
+#### 원격 서버 실행 시
+
+서버의 IP 주소 또는 도메인으로 접속:
+
+- **REST API Base URL**: http://1.201.19.243:8081
+- **Swagger UI**: http://1.201.19.243:8081/swagger-ui.html
+- **gRPC 서버**: 1.201.19.243:50052
+
+### 주요 API 엔드포인트
+
+- `GET /api/v1/cards` - 전체 카드 조회
+- `POST /api/v1/cards/my` - 내 카드 조회
+- `POST /api/v1/cards/offline` - 오프라인 혜택 조회
+- `POST /api/v1/cards/online` - 온라인 혜택 조회
+- `GET /api/v1/promotions` - 프로모션 조회
+
+## 테스트 계정
+
+### API 테스트
+
+이 API는 인증이 필요하지 않습니다. 직접 API를 호출하여 테스트할 수 있습니다.
+
+### 테스트 예제
+
+#### 1. 전체 카드 조회 테스트
+
+```bash
+curl http://localhost:8081/api/v1/cards
+```
+
+#### 2. 카드사별 필터링 테스트
+
+```bash
+curl "http://localhost:8081/api/v1/cards?cardCompany=SAMSUNG"
+```
+
+#### 3. 내 카드 조회 테스트
+
+```bash
+curl -X POST http://localhost:8081/api/v1/cards/my \
+  -H "Content-Type: application/json" \
+  -d '{"cardIds": [1, 2, 3]}'
+```
+
+#### 4. 오프라인 혜택 조회 테스트
+
+```bash
+curl -X POST "http://localhost:8081/api/v1/cards/offline?x=127.0276&y=37.4979&query=카페" \
+  -H "Content-Type: application/json" \
+  -d '{"cardIds": [1, 2]}'
+```
+
+#### 5. 프로모션 조회 테스트
+
+```bash
+curl http://localhost:8081/api/v1/promotions
+```
+
+### Swagger UI를 통한 테스트
+
+1. 브라우저에서 http://localhost:8081/swagger-ui.html 또는 http://1.201.19.243:8081/swagger-ui.html 접속
+2. 각 API 엔드포인트를 클릭하여 상세 정보 확인
+3. "Try it out" 버튼을 클릭하여 직접 테스트
